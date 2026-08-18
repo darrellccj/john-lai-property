@@ -32,7 +32,7 @@
   h1 em{font-style:italic; color:var(--accent)}
   .lede{font-size:clamp(1rem,2.2vw,1.15rem); color:var(--ink-soft); max-width:46ch; margin:0}
   .rule{height:1px;background:var(--line);margin:clamp(2.5rem,6vw,4rem) 0}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(1rem,2.5vw,1.5rem)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:clamp(1rem,2.5vw,1.5rem)}
   .card{
     display:flex; flex-direction:column; gap:.75rem; position:relative;
     background:var(--card); border:1px solid var(--line); border-radius:2px;
@@ -45,13 +45,10 @@
   }
   .card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
   .num{
-    font-family:"DM Mono",monospace; font-size:.7rem; letter-spacing:.2em;
-    color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center;
+    font-family:"DM Mono",monospace; font-size:.7rem; letter-spacing:.2em; color:var(--ink-soft);
   }
-  .latest{background:var(--accent);color:#fff;padding:.15rem .5rem;border-radius:2px;letter-spacing:.12em}
-  .card h2{font-family:"Playfair Display",Georgia,serif;font-weight:600;font-size:1.5rem;line-height:1.2;margin:.25rem 0 0}
-  .card p{margin:0;color:var(--ink-soft);font-size:.92rem}
-  .go{margin-top:auto;padding-top:1rem;font-size:.85rem;font-weight:500;color:var(--accent)}
+  .card h2{font-family:"Playfair Display",Georgia,serif;font-weight:600;font-size:1.75rem;line-height:1.2;margin:.25rem 0 0}
+  .go{margin-top:auto;padding-top:1.75rem;font-size:.85rem;font-weight:500;color:var(--accent)}
   footer{
     margin-top:clamp(3rem,7vw,5rem); padding-top:1.5rem; border-top:1px solid var(--line);
     font-family:"DM Mono",monospace; font-size:.72rem; letter-spacing:.08em; color:var(--ink-soft);
@@ -65,38 +62,33 @@
   <main class="wrap">
     <p class="eyebrow">John Lai · Property · Singapore</p>
     <h1>Four ways to<br />say the <em>same thing.</em></h1>
-    <p class="lede">Four design directions for the same property site, built one after another. Open any of them — they are all fully live.</p>
+    <p class="lede">Four design directions for the same property site. Open any of them — they are all fully live.</p>
 
     <div class="rule"></div>
 
     <div class="grid">
       <a class="card" href="v6/">
-        <span class="num"><span>V6 · 17 Aug, 23:24</span><span class="latest">LATEST</span></span>
-        <h2>Make Your Move Matter</h2>
-        <p>“Homes with a pulse.” The Redline Collective — the most resolved of the set.</p>
-        <span class="go">Open version six →</span>
+        <span class="num">01</span>
+        <h2>Option 1</h2>
+        <span class="go">View this option &rarr;</span>
       </a>
       <a class="card" href="v5/">
-        <span class="num"><span>V5 · 17 Aug, 18:14</span></span>
-        <h2>Property, considered.</h2>
-        <p>“Make your next move mean more.” Numbered editorial sections and the John Lai Method.</p>
-        <span class="go">Open version five →</span>
+        <span class="num">02</span>
+        <h2>Option 2</h2>
+        <span class="go">View this option &rarr;</span>
       </a>
       <a class="card" href="v4/">
-        <span class="num"><span>V4 · 17 Aug, 17:52</span></span>
-        <h2>The Red Line</h2>
-        <p>“Where the right move begins.” Not a catalogue — a way to find the next chapter.</p>
-        <span class="go">Open version four →</span>
+        <span class="num">03</span>
+        <h2>Option 3</h2>
+        <span class="go">View this option &rarr;</span>
       </a>
       <a class="card" href="v3/">
-        <span class="num"><span>V3 · 17 Aug, 17:34</span></span>
-        <h2>Find your next move</h2>
-        <p>“The next chapter starts here.” Singapore real estate, refined — the earliest direction.</p>
-        <span class="go">Open version three →</span>
+        <span class="num">04</span>
+        <h2>Option 4</h2>
+        <span class="go">View this option &rarr;</span>
       </a>
     </div>
 
-    <footer>Built with Codex · Published from local files, nothing rewritten</footer>
   </main>
 </body>
 </html>
