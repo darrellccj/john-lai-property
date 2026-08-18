@@ -158,13 +158,19 @@
     return Math.max(0, d.scrollHeight - w.innerHeight);
   }
 
-  var locked = false;
+  // The panel the user actually scrolls becomes the driver; the echo scroll
+  // events it causes in the followers are ignored until it goes quiet.
+  var driver = null, release = null;
+
   function wire(f) {
     var w;
     try { w = f.contentWindow; w.document; } catch (e) { return; }   // cross-origin guard
     w.addEventListener('scroll', function () {
-      if (locked) return;
-      locked = true;
+      if (driver && driver !== f) return;
+      driver = f;
+      clearTimeout(release);
+      release = setTimeout(function () { driver = null; }, 150);
+
       var max = maxScroll(w);
       var frac = max > 0 ? w.scrollY / max : 0;
       frames.forEach(function (o) {
@@ -172,10 +178,11 @@
         try {
           var ow = o.contentWindow;
           if (!ow || !ow.document.body) return;
-          ow.scrollTo(0, frac * maxScroll(ow));
+          // 'instant' matters: these sites set scroll-behavior:smooth, and an
+          // animated follower scroll would fight the driver.
+          ow.scrollTo({ top: frac * maxScroll(ow), behavior: 'instant' });
         } catch (e) {}
       });
-      requestAnimationFrame(function () { locked = false; });
     }, { passive: true });
   }
 
