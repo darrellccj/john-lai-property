@@ -186,8 +186,21 @@
     }, { passive: true });
   }
 
+  function attach(f) {
+    if (f.__synced) return;                      // never wire twice
+    f.__synced = true;
+    fit(f); wire(f);
+  }
+  function isLoaded(f) {
+    try { return !!f.contentDocument && f.contentDocument.readyState === 'complete'; }
+    catch (e) { return false; }
+  }
+
   frames.forEach(function (f) {
-    f.addEventListener('load', function () { fit(f); wire(f); });
+    f.addEventListener('load', function () { f.__synced = false; attach(f); });
+    // A cached iframe can already be complete by the time this script runs,
+    // in which case its load event has been and gone — wire it now.
+    if (isLoaded(f)) attach(f);
   });
   window.addEventListener('resize', fitAll);
   fitAll();
