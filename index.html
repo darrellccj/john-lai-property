@@ -169,42 +169,49 @@
 
   function sample() { frames.forEach(function (f, i) { var w = win(f); if (w) last[i] = w.scrollY; }); }
 
-  function tick() {
-    if (active) {
-      for (var i = 0; i < frames.length; i++) {
-        var w = win(frames[i]);
-        if (!w) continue;
-        if (Math.abs(w.scrollY - last[i]) > 0.5) {
-          var max = maxScroll(w);
-          var frac = max > 0 ? w.scrollY / max : 0;
-          frames.forEach(function (o, j) {
-            if (j === i) return;
-            var ow = win(o);
-            // 'instant' matters: these sites set scroll-behavior:smooth, and an
-            // animated follower would fight the panel being driven.
-            if (ow) ow.scrollTo({ top: frac * maxScroll(ow), behavior: 'instant' });
-          });
-          sample();                                // re-baseline so followers never drive
-          break;
-        }
-        last[i] = w.scrollY;
+  function step() {
+    if (!active) return;
+    for (var i = 0; i < frames.length; i++) {
+      var w = win(frames[i]);
+      if (!w) continue;
+      if (Math.abs(w.scrollY - last[i]) > 0.5) {
+        var max = maxScroll(w);
+        var frac = max > 0 ? w.scrollY / max : 0;
+        frames.forEach(function (o, j) {
+          if (j === i) return;
+          var ow = win(o);
+          // 'instant' matters: these sites set scroll-behavior:smooth, and an
+          // animated follower would fight the panel being driven.
+          if (ow) ow.scrollTo({ top: frac * maxScroll(ow), behavior: 'instant' });
+        });
+        sample();                                // re-baseline so followers never drive
+        return;
       }
+      last[i] = w.scrollY;
     }
-    requestAnimationFrame(tick);
   }
 
+  function tick() { step(); requestAnimationFrame(tick); }
+
   // Only poll while the grid is actually on screen.
-  if (window.IntersectionObserver) {
+  var quads = document.querySelector('.quads');
+  if (window.IntersectionObserver && quads) {
     new IntersectionObserver(function (entries) {
       active = entries[0].isIntersecting;
       if (active) sample();
-    }, { rootMargin: '200px' }).observe(document.querySelector('.quads'));
-  } else { active = true; }
+    }, { rootMargin: '200px' }).observe(quads);
+  } else {
+    active = true;
+  }
 
-  frames.forEach(function (f) { f.addEventListener('load', function () { fit(f); sample(); }); });
+  frames.forEach(function (f) {
+    f.addEventListener('load', function () { fit(f); sample(); });
+  });
   window.addEventListener('resize', fitAll);
+
   fitAll();
-  requestAnimationFrame(tick);
+  requestAnimationFrame(tick);   // smooth 60Hz sync while the tab is visible
+  setInterval(step, 100);        // fallback: rAF is suspended in background tabs
 })();
 </script>
 </body>
