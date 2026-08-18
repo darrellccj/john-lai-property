@@ -53,6 +53,38 @@
     margin-top:clamp(3rem,7vw,5rem); padding-top:1.5rem; border-top:1px solid var(--line);
     font-family:"DM Mono",monospace; font-size:.72rem; letter-spacing:.08em; color:var(--ink-soft);
   }
+
+  /* ---- 2x2 live preview grid ---- */
+  .preview-head{margin:clamp(3rem,7vw,5rem) 0 1.5rem}
+  .preview-head h2{
+    font-family:"Playfair Display",Georgia,serif; font-weight:600;
+    font-size:clamp(1.6rem,4vw,2.4rem); line-height:1.1; margin:0 0 .5rem; letter-spacing:-.01em;
+  }
+  .preview-head p{margin:0;color:var(--ink-soft);font-size:.95rem}
+  .quads{display:grid;grid-template-columns:1fr 1fr;gap:clamp(.75rem,2vw,1.25rem)}
+  .quad{
+    display:flex; flex-direction:column; background:var(--card);
+    border:1px solid var(--line); border-radius:2px; overflow:hidden;
+  }
+  .quad-bar{
+    display:flex; justify-content:space-between; align-items:center; gap:1rem;
+    padding:.6rem .9rem; border-bottom:1px solid var(--line); background:var(--paper);
+  }
+  .quad-bar span{
+    font-family:"DM Mono",monospace; font-size:.7rem; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink);
+  }
+  .quad-bar a{
+    font-family:"DM Mono",monospace; font-size:.65rem; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--accent); text-decoration:none; white-space:nowrap;
+  }
+  .quad-bar a:hover,.quad-bar a:focus-visible{text-decoration:underline}
+  .stage{position:relative; overflow:hidden; height:clamp(260px,40vh,460px); background:var(--card)}
+  .stage iframe{position:absolute;top:0;left:0;border:0;transform-origin:0 0;display:block}
+  @media (max-width:680px){
+    .quads{grid-template-columns:1fr}
+    .stage{height:clamp(300px,55vh,420px)}
+  }
   @media (prefers-color-scheme:dark){
     :root{--ink:#f2ede6;--ink-soft:#a49b91;--paper:#141210;--line:#2e2925;--card:#1c1917;--accent:#e0705a}
   }
@@ -89,6 +121,70 @@
       </a>
     </div>
 
+
+    <section class="preview-head">
+      <h2>All four, side by side.</h2>
+      <p>Scroll any panel &mdash; the other three follow, so you are always comparing the same part of each design.</p>
+    </section>
+
+    <div class="quads">
+      <div class="quad"><div class="quad-bar"><span>Option 1</span><a href="v6/">Open full size &rarr;</a></div>
+        <div class="stage"><iframe data-sync src="v6/" title="Option 1" loading="lazy"></iframe></div></div>
+      <div class="quad"><div class="quad-bar"><span>Option 2</span><a href="v5/">Open full size &rarr;</a></div>
+        <div class="stage"><iframe data-sync src="v5/" title="Option 2" loading="lazy"></iframe></div></div>
+      <div class="quad"><div class="quad-bar"><span>Option 3</span><a href="v4/">Open full size &rarr;</a></div>
+        <div class="stage"><iframe data-sync src="v4/" title="Option 3" loading="lazy"></iframe></div></div>
+      <div class="quad"><div class="quad-bar"><span>Option 4</span><a href="v3/">Open full size &rarr;</a></div>
+        <div class="stage"><iframe data-sync src="v3/" title="Option 4" loading="lazy"></iframe></div></div>
+    </div>
   </main>
+
+<script>
+(function () {
+  var VW = 1400;                                   // width each site is rendered at
+  var frames = Array.prototype.slice.call(document.querySelectorAll('iframe[data-sync]'));
+
+  function fit(f) {
+    var stage = f.parentNode;
+    var s = stage.clientWidth / VW;
+    f.style.width = VW + 'px';
+    f.style.height = (stage.clientHeight / s) + 'px';
+    f.style.transform = 'scale(' + s + ')';
+  }
+  function fitAll() { frames.forEach(fit); }
+
+  function maxScroll(w) {
+    var d = w.document.documentElement;
+    return Math.max(0, d.scrollHeight - w.innerHeight);
+  }
+
+  var locked = false;
+  function wire(f) {
+    var w;
+    try { w = f.contentWindow; w.document; } catch (e) { return; }   // cross-origin guard
+    w.addEventListener('scroll', function () {
+      if (locked) return;
+      locked = true;
+      var max = maxScroll(w);
+      var frac = max > 0 ? w.scrollY / max : 0;
+      frames.forEach(function (o) {
+        if (o === f) return;
+        try {
+          var ow = o.contentWindow;
+          if (!ow || !ow.document.body) return;
+          ow.scrollTo(0, frac * maxScroll(ow));
+        } catch (e) {}
+      });
+      requestAnimationFrame(function () { locked = false; });
+    }, { passive: true });
+  }
+
+  frames.forEach(function (f) {
+    f.addEventListener('load', function () { fit(f); wire(f); });
+  });
+  window.addEventListener('resize', fitAll);
+  fitAll();
+})();
+</script>
 </body>
 </html>
