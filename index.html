@@ -143,6 +143,7 @@
 (function () {
   var VW = 1400;                                   // width each site is rendered at
   var frames = Array.prototype.slice.call(document.querySelectorAll('iframe[data-sync]'));
+  if (!frames.length) return;
 
   function fit(f) {
     var stage = f.parentNode;
@@ -153,57 +154,57 @@
   }
   function fitAll() { frames.forEach(fit); }
 
+  function win(f) { try { var w = f.contentWindow; return w && w.document.body ? w : null; } catch (e) { return null; } }
   function maxScroll(w) {
     var d = w.document.documentElement;
     return Math.max(0, d.scrollHeight - w.innerHeight);
   }
 
-  // The panel the user actually scrolls becomes the driver; the echo scroll
-  // events it causes in the followers are ignored until it goes quiet.
-  var driver = null, release = null;
+  // Scroll events are not reliably dispatched inside these scaled, clipped
+  // iframes, so the panels are polled on a frame loop instead: whichever one
+  // moved on its own is treated as the driver and the rest are matched to it
+  // proportionally (the designs differ in length).
+  var last = frames.map(function () { return 0; });
+  var active = false;
 
-  function wire(f) {
-    var w;
-    try { w = f.contentWindow; w.document; } catch (e) { return; }   // cross-origin guard
-    w.addEventListener('scroll', function () {
-      if (driver && driver !== f) return;
-      driver = f;
-      clearTimeout(release);
-      release = setTimeout(function () { driver = null; }, 150);
+  function sample() { frames.forEach(function (f, i) { var w = win(f); if (w) last[i] = w.scrollY; }); }
 
-      var max = maxScroll(w);
-      var frac = max > 0 ? w.scrollY / max : 0;
-      frames.forEach(function (o) {
-        if (o === f) return;
-        try {
-          var ow = o.contentWindow;
-          if (!ow || !ow.document.body) return;
-          // 'instant' matters: these sites set scroll-behavior:smooth, and an
-          // animated follower scroll would fight the driver.
-          ow.scrollTo({ top: frac * maxScroll(ow), behavior: 'instant' });
-        } catch (e) {}
-      });
-    }, { passive: true });
+  function tick() {
+    if (active) {
+      for (var i = 0; i < frames.length; i++) {
+        var w = win(frames[i]);
+        if (!w) continue;
+        if (Math.abs(w.scrollY - last[i]) > 0.5) {
+          var max = maxScroll(w);
+          var frac = max > 0 ? w.scrollY / max : 0;
+          frames.forEach(function (o, j) {
+            if (j === i) return;
+            var ow = win(o);
+            // 'instant' matters: these sites set scroll-behavior:smooth, and an
+            // animated follower would fight the panel being driven.
+            if (ow) ow.scrollTo({ top: frac * maxScroll(ow), behavior: 'instant' });
+          });
+          sample();                                // re-baseline so followers never drive
+          break;
+        }
+        last[i] = w.scrollY;
+      }
+    }
+    requestAnimationFrame(tick);
   }
 
-  function attach(f) {
-    if (f.__synced) return;                      // never wire twice
-    f.__synced = true;
-    fit(f); wire(f);
-  }
-  function isLoaded(f) {
-    try { return !!f.contentDocument && f.contentDocument.readyState === 'complete'; }
-    catch (e) { return false; }
-  }
+  // Only poll while the grid is actually on screen.
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (entries) {
+      active = entries[0].isIntersecting;
+      if (active) sample();
+    }, { rootMargin: '200px' }).observe(document.querySelector('.quads'));
+  } else { active = true; }
 
-  frames.forEach(function (f) {
-    f.addEventListener('load', function () { f.__synced = false; attach(f); });
-    // A cached iframe can already be complete by the time this script runs,
-    // in which case its load event has been and gone — wire it now.
-    if (isLoaded(f)) attach(f);
-  });
+  frames.forEach(function (f) { f.addEventListener('load', function () { fit(f); sample(); }); });
   window.addEventListener('resize', fitAll);
   fitAll();
+  requestAnimationFrame(tick);
 })();
 </script>
 </body>
