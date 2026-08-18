@@ -165,7 +165,7 @@
   // moved on its own is treated as the driver and the rest are matched to it
   // proportionally (the designs differ in length).
   var last = frames.map(function () { return 0; });
-  var active = false;
+  var active = true;   // default on; the observer below only ever switches it off
 
   function sample() { frames.forEach(function (f, i) { var w = win(f); if (w) last[i] = w.scrollY; }); }
 
@@ -200,8 +200,6 @@
       active = entries[0].isIntersecting;
       if (active) sample();
     }, { rootMargin: '200px' }).observe(quads);
-  } else {
-    active = true;
   }
 
   frames.forEach(function (f) {
